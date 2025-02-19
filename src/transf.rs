@@ -90,8 +90,8 @@ pub fn mcu_to_rgb(mcu: Vec<[[f32; 8]; 8]>) -> [[[u8; 3]; 16]; 16] {
     for i in 0..16 {
         for j in 0..16 {
             let lum = mcu[lum_idx(i, j)][i % 8][j % 8];
-            let cb = mcu[4][i / 2][i / 2];
-            let cr = mcu[5][i / 2][i / 2];
+            let cb = mcu[4][i / 2][j / 2];
+            let cr = mcu[5][i / 2][j / 2];
             ycbcr[i][j] = ycbcr_to_rgb(lum, cb, cr);
         }
     }

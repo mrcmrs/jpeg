@@ -20,35 +20,49 @@ pub fn scan_blocks(segments: &mut Segments) -> Vec<[i16; 64]> {
     let mut curr_component = ComponentId::LumY;
     let mut n_data_units = 4;
     let mut i = 0;
-    let mut value = 0;
     let mut prev_dc = PrevDC::default();
 
     while let Some(bit) = bit_stream.next_bit() {
+        print!("{bit:01b}");
 
-        if let Ok(Some(x)) = table.tree.forward(bit) {
-            let mut category = x;
+        if let Ok(Some(category)) = table.tree.forward(bit) {
             println!(" ");
             println!("i: {}, c: {:x}, {:?}, {:?}, pos: {}", i, category, &curr_component, &table.class, bit_stream.get_pos());
             
             if table.class == Class::DC {
-
+                dbg!(&prev_dc);
                 match curr_component {
                     ComponentId::LumY => {
                         println!("New AC Lum");
                         table = &mut segments.huffman_tables[1]; // AC, Lum
-                        value = prev_dc.lum;
+
+                        block[i] = bit_stream.get_coeff(category) + prev_dc.lum;
+                        prev_dc.lum = block[i];
+                        assert_eq!(i, 0);
+                        i += 1;
+                        continue;
                     },
                     ComponentId::ChromCb => {
                         table = &mut segments.huffman_tables[3]; // AC, Chr
-                        value = prev_dc.cb;
+
+                        block[i] = bit_stream.get_coeff(category) + prev_dc.cb;
+                        prev_dc.cb = block[i];
+                        assert_eq!(i, 0);
+                        i += 1;
+                        continue;
                     }
                     ComponentId::ChromCr => {
                         table = &mut segments.huffman_tables[3]; // AC, Chr
-                        value = prev_dc.cr;
+
+                        block[i] = bit_stream.get_coeff(category) + prev_dc.cr;
+                        prev_dc.cr = block[i];
+                        assert_eq!(i, 0);
+                        i += 1;
+                        continue;
                     }
                 }
             } else {       // Class::AC
-                if x == 0 || i >= 63 { // End of Block
+                if category == 0 { // End of Block
                     match curr_component {
                         ComponentId::LumY => {
                             if n_data_units > 1 {
@@ -60,40 +74,90 @@ pub fn scan_blocks(segments: &mut Segments) -> Vec<[i16; 64]> {
                                 curr_component = ComponentId::ChromCb;
                                 n_data_units = 4;
                             }
-                            prev_dc.lum = block[0];
                         },
                         ComponentId::ChromCb => {
                             table = &mut segments.huffman_tables[2]; // DC, Chr
                             curr_component = ComponentId::ChromCr;
-                            prev_dc.cb = block[0];
                         }
                         ComponentId::ChromCr => {
                             table = &mut segments.huffman_tables[0]; // DC, Lum
                             curr_component = ComponentId::LumY;
-                            prev_dc.cr = block[0];
                         }
                     }
+                    println!("EOB: {:?}", block);
 
-                    println!("{:?}", block);
-                    if i >= 63 {
-                        block[i] = bit_stream.get_coeff(category);
-                    }
-                    
                     blocks.push(block);
                     block = [0; 64];
                     i = 0;
                     continue;
+
+                } else if i >= 63 {
+                    match curr_component {
+                        ComponentId::LumY => {
+                            if n_data_units > 1 {
+                                println!("new DC Lum");
+                                table = &mut segments.huffman_tables[0]; // DC, Lum
+                                n_data_units -= 1;
+                            } else {
+                                table = &mut segments.huffman_tables[2]; // DC, Chr
+                                curr_component = ComponentId::ChromCb;
+                                n_data_units = 4;
+                            }
+                        },
+                        ComponentId::ChromCb => {
+                            table = &mut segments.huffman_tables[2]; // DC, Chr
+                            curr_component = ComponentId::ChromCr;
+                        }
+                        ComponentId::ChromCr => {
+                            table = &mut segments.huffman_tables[0]; // DC, Lum
+                            curr_component = ComponentId::LumY;
+                        }
+                    }
+
+                    block[63] = bit_stream.get_coeff(category & 0x0F);
+
+                    println!("{:?}", block);
+                    blocks.push(block);
+                    block = [0; 64];
+                    i = 0;
+                    continue;
+
+                } else {
+                    i += (category as usize) >> 4;
+                    block[i] = bit_stream.get_coeff(category & 0x0F);
+                    if i >= 63 {
+                        match curr_component {
+                            ComponentId::LumY => {
+                                if n_data_units > 1 {
+                                    println!("new DC Lum");
+                                    table = &mut segments.huffman_tables[0]; // DC, Lum
+                                    n_data_units -= 1;
+                                } else {
+                                    table = &mut segments.huffman_tables[2]; // DC, Chr
+                                    curr_component = ComponentId::ChromCb;
+                                    n_data_units = 4;
+                                }
+                            },
+                            ComponentId::ChromCb => {
+                                table = &mut segments.huffman_tables[2]; // DC, Chr
+                                curr_component = ComponentId::ChromCr;
+                            }
+                            ComponentId::ChromCr => {
+                                table = &mut segments.huffman_tables[0]; // DC, Lum
+                                curr_component = ComponentId::LumY;
+                            }
+                        }
+                        println!("{:?}", block);
+                        blocks.push(block);
+                        block = [0; 64];
+                        i = 0;
+                        continue;
+                        
+                    } else {
+                        i += 1;
+                    }
                 }
-                i += (x as usize) >> 4;
-                category &= 0x0F;
             }
-
-            value += bit_stream.get_coeff(category);
-            dbg!(value);
-
-            block[i] = value;
-            i += 1;
-            value = 0;
         };
     }
 

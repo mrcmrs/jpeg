@@ -128,7 +128,7 @@ impl<'a> BitStream<'a> {
         }
 
         self.pos = 8 * self.curr_byte + 7 - self.curr_bit as usize;
-        print!("{res:01b}");
+        // print!("{res:01b}");
 
         Some(res)
     }

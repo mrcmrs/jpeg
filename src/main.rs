@@ -9,9 +9,14 @@ use image::{ImageBuffer, RgbImage};
 fn main() {
     // let img_path = "img/white_square.jpg";
     // let img_path = "img/white_square_16x16.jpg";
-    let img_path = "img/sq16do.jpg";
+    // let img_path = "img/sq16rdot.jpg";
+    let img_path = "img/rec32dot.jpg";
     let data: Vec<u8> = fs::read(img_path).unwrap();
     let mut segments = parsing::parse(&data);
+
+    
+    let width = segments.start_of_frame.as_ref().unwrap().width;
+    let height = segments.start_of_frame.as_ref().unwrap().height;
 
     // dbg!(&segments.start_of_frame);
     // dbg!(&segments.quantization_tables[0]);
@@ -19,8 +24,9 @@ fn main() {
     
     let res = transf::get_mcus(&mut segments);
 
+
+    let mut img: RgbImage = ImageBuffer::new(width as u32, height as u32);
     for array in res {
-        let mut img: RgbImage = ImageBuffer::new(16, 16);
 
         for (x, y, pixel) in img.enumerate_pixels_mut() {
             let rgb = array[y as usize][x as usize]; // Access pixel data
