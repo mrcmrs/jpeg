@@ -23,17 +23,17 @@ pub fn scan_blocks(segments: &mut Segments) -> Vec<[i16; 64]> {
     let mut prev_dc = PrevDC::default();
 
     while let Some(bit) = bit_stream.next_bit() {
-        print!("{bit:01b}");
+        // print!("{bit:01b}");
 
         if let Ok(Some(category)) = table.tree.forward(bit) {
-            println!(" ");
-            println!("i: {}, c: {:x}, {:?}, {:?}, pos: {}", i, category, &curr_component, &table.class, bit_stream.get_pos());
+            // println!(" ");
+            // println!("i: {}, c: {:x}, {:?}, {:?}, pos: {}", i, category, &curr_component, &table.class, bit_stream.get_pos());
             
             if table.class == Class::DC {
-                dbg!(&prev_dc);
+                // dbg!(&prev_dc);
                 match curr_component {
                     ComponentId::LumY => {
-                        println!("New AC Lum");
+                        // println!("New AC Lum");
                         table = &mut segments.huffman_tables[1]; // AC, Lum
 
                         block[i] = bit_stream.get_coeff(category) + prev_dc.lum;
@@ -66,7 +66,7 @@ pub fn scan_blocks(segments: &mut Segments) -> Vec<[i16; 64]> {
                     match curr_component {
                         ComponentId::LumY => {
                             if n_data_units > 1 {
-                                println!("new DC Lum");
+                                // println!("new DC Lum");
                                 table = &mut segments.huffman_tables[0]; // DC, Lum
                                 n_data_units -= 1;
                             } else {
@@ -84,7 +84,7 @@ pub fn scan_blocks(segments: &mut Segments) -> Vec<[i16; 64]> {
                             curr_component = ComponentId::LumY;
                         }
                     }
-                    println!("EOB: {:?}", block);
+                    // println!("EOB: {:?}", block);
 
                     blocks.push(block);
                     block = [0; 64];
@@ -95,7 +95,7 @@ pub fn scan_blocks(segments: &mut Segments) -> Vec<[i16; 64]> {
                     match curr_component {
                         ComponentId::LumY => {
                             if n_data_units > 1 {
-                                println!("new DC Lum");
+                                // println!("new DC Lum");
                                 table = &mut segments.huffman_tables[0]; // DC, Lum
                                 n_data_units -= 1;
                             } else {
@@ -116,7 +116,7 @@ pub fn scan_blocks(segments: &mut Segments) -> Vec<[i16; 64]> {
 
                     block[63] = bit_stream.get_coeff(category & 0x0F);
 
-                    println!("{:?}", block);
+                    // println!("{:?}", block);
                     blocks.push(block);
                     block = [0; 64];
                     i = 0;
@@ -129,7 +129,7 @@ pub fn scan_blocks(segments: &mut Segments) -> Vec<[i16; 64]> {
                         match curr_component {
                             ComponentId::LumY => {
                                 if n_data_units > 1 {
-                                    println!("new DC Lum");
+                                    // println!("new DC Lum");
                                     table = &mut segments.huffman_tables[0]; // DC, Lum
                                     n_data_units -= 1;
                                 } else {
@@ -147,12 +147,12 @@ pub fn scan_blocks(segments: &mut Segments) -> Vec<[i16; 64]> {
                                 curr_component = ComponentId::LumY;
                             }
                         }
-                        println!("{:?}", block);
+                        // println!("{:?}", block);
                         blocks.push(block);
                         block = [0; 64];
                         i = 0;
                         continue;
-                        
+
                     } else {
                         i += 1;
                     }

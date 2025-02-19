@@ -129,3 +129,42 @@ pub fn get_mcus(segments: &mut parsing::Segments) -> Vec<[[[u8; 3]; 16]; 16]> {
 
     res
 }
+
+
+pub fn mcus_to_img(mcus: Vec<[[[u8; 3]; 16]; 16]>, height: u16, width: u16) -> Vec<Vec<[u8; 3]>> {
+    let mut img = Vec::new();
+
+    
+    let h_mcus = usize::div_ceil(width as usize, 16);
+    // let v_mcus = usize::div_ceil(height as usize, 16);
+    
+    dbg!(width);
+    dbg!(height);
+    dbg!(mcus.len());
+    dbg!(h_mcus);
+
+    for i in 0..height as usize {
+        let mut row = Vec::new();
+        for j in 0..width as usize {
+            let mcus_idx = j / 16 + (i / 16) * h_mcus;
+            let mcu_i = i % 16;
+            let mcu_j = j % 16;
+            // println!("i: {}, j: {}, mcu: {}, mcu_i: {}, mcu_j: {}", i, j, mcus_idx, mcu_i, mcu_j);
+            let pixel = mcus[mcus_idx][mcu_i][mcu_j];
+            row.push(pixel);
+        }
+        img.push(row);
+    }
+
+    img
+}
+
+#[cfg(test)]
+mod test {
+    // use super::*;
+
+    #[test]
+    fn test_n_mcus() {
+        
+    }
+}

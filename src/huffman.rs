@@ -134,7 +134,7 @@ impl<'a> BitStream<'a> {
     }
 
     pub fn get_coeff(&mut self, category: u8) -> i16 {
-        println!(" ");
+        // println!(" ");
         if category == 0 {
             return 0;
         }
