@@ -17,6 +17,16 @@ pub fn get(img_path: &str) -> Vec<Vec<[u8; 3]>> {
     transf::mcus_to_img(res, height, width)
 }
 
+pub fn decode_binary(data: &[u8]) -> Vec<Vec<[u8; 3]>> {
+    let mut segments = parsing::parse(data);
+
+    let width = segments.start_of_frame.as_ref().unwrap().width;
+    let height = segments.start_of_frame.as_ref().unwrap().height;
+
+    let res = transf::get_mcus(&mut segments);
+    transf::mcus_to_img(res, height, width)
+}
+
 pub fn save(pic: Vec<Vec<[u8; 3]>>) {
     let height = pic.len();
     let width = pic[0].len();
