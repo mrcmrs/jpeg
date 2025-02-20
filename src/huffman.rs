@@ -82,7 +82,7 @@ impl Tree {
 }
 
 
-#[warn(dead_code)]
+#[allow(dead_code)]
 pub struct BitStream<'a> {
     data: &'a [u8],
     curr_byte: usize,
@@ -90,6 +90,7 @@ pub struct BitStream<'a> {
     pos: usize,
 }
 
+#[allow(dead_code)]
 impl<'a> BitStream<'a> {
     pub fn new(bytes: &'a [u8]) -> BitStream<'a> {
         BitStream {
@@ -102,7 +103,7 @@ impl<'a> BitStream<'a> {
 
     pub fn next_bit(&mut self) -> Option<u8> {
         if self.pos >= self.data.len()*8-1{
-            println!("End of scan");
+            // println!("End of scan");
             return None;
         }
 
@@ -112,8 +113,8 @@ impl<'a> BitStream<'a> {
             return None;
         }
         if  self.data[i] == 0x00 && self.data[i-1] == 0xFF {
-            println!(" ");
-            println!("0x00 detected after 0xFF");
+            // println!(" ");
+            // println!("0x00 detected after 0xFF");
             self.curr_byte += 1;
             self.curr_bit = 8;
         }

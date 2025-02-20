@@ -74,15 +74,7 @@ pub fn ycbcr_to_rgb(y: f32, cb: f32, cr: f32) -> [u8; 3] {
 }
 
 fn lum_idx(i: usize, j: usize) -> usize {
-    if i < 8 && j < 8 {
-        0
-    } else if i < 8 {
-        1
-    } else if j < 8 {
-        2
-    } else {
-        3
-    }
+    (j >> 3) + ((i >> 3) << 1)
 }
 
 pub fn mcu_to_rgb(mcu: Vec<[[f32; 8]; 8]>) -> [[[u8; 3]; 16]; 16] {
@@ -132,30 +124,20 @@ pub fn get_mcus(segments: &mut parsing::Segments) -> Vec<[[[u8; 3]; 16]; 16]> {
 
 
 pub fn mcus_to_img(mcus: Vec<[[[u8; 3]; 16]; 16]>, height: u16, width: u16) -> Vec<Vec<[u8; 3]>> {
-    let mut img = Vec::new();
-
-    
+    let mut img = Vec::new();  
     let h_mcus = usize::div_ceil(width as usize, 16);
-    // let v_mcus = usize::div_ceil(height as usize, 16);
-    
-    dbg!(width);
-    dbg!(height);
-    dbg!(mcus.len());
-    dbg!(h_mcus);
 
     for i in 0..height as usize {
         let mut row = Vec::new();
         for j in 0..width as usize {
-            let mcus_idx = j / 16 + (i / 16) * h_mcus;
+            let mcus_idx = (j >> 4) + (i >> 4) * h_mcus;
             let mcu_i = i % 16;
             let mcu_j = j % 16;
-            // println!("i: {}, j: {}, mcu: {}, mcu_i: {}, mcu_j: {}", i, j, mcus_idx, mcu_i, mcu_j);
             let pixel = mcus[mcus_idx][mcu_i][mcu_j];
             row.push(pixel);
         }
         img.push(row);
     }
-
     img
 }
 
