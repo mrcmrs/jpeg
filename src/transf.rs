@@ -41,9 +41,9 @@ fn cos(a: usize, b: usize) -> f32 {
 
 fn syx(y: usize, x: usize, svu: [[i32; 8]; 8]) -> f32 {
     let mut res = 0.;
-    for u in 0..8 {
-        for v in 0..8 {
-            res += cu_cv(u, v) * svu[v][u] as f32 * cos(x, u) * cos(y, v);
+    for (v, row) in svu.iter().enumerate() {
+        for (u, &value) in row.iter().enumerate() {
+            res += cu_cv(u, v) * value as f32 * cos(x, u) * cos(y, v);
         }
     }
     res / 4.
@@ -52,9 +52,9 @@ fn syx(y: usize, x: usize, svu: [[i32; 8]; 8]) -> f32 {
 pub fn idct(input: [[i32; 8]; 8]) -> [[f32; 8]; 8] {
     let mut res = [[0.; 8]; 8];
 
-    for y in 0..8 {
-        for x in 0..8 {
-            res[y][x] = syx(y, x, input) + 128.;
+    for (y, row) in res.iter_mut().enumerate() {
+        for (x, value) in row.iter_mut().enumerate() {
+            *value = syx(y, x, input) + 128.;
         }
     } 
     res
